@@ -27,29 +27,26 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
-
-
-
 public class RNWalleModule extends ReactContextBaseJavaModule {
 
-  private final ReactApplicationContext reactContext;
+    private final ReactApplicationContext reactContext;
 
- private Callback rctCallback = null;
- Context context;
- String imageurl;
- String message = null;
-  public RNWalleModule(ReactApplicationContext reactContext) {
-    super(reactContext);
-    this.reactContext = reactContext;
-     context = reactContext.getApplicationContext();
-  }
+    private Callback rctCallback = null;
+    Context context;
+    String imageurl;
+    String message = null;
+    public RNWalleModule(ReactApplicationContext reactContext) {
+        super(reactContext);
+        this.reactContext = reactContext;
+        context = reactContext.getApplicationContext();
+    }
 
-  @Override
-  public String getName() {
-    return "RNWalle";
-  }
-  @ReactMethod
-    public void setWallPaper(String imgUri,Callback callback) {
+    @Override
+    public String getName() {
+        return "RNWalle";
+    }
+    @ReactMethod
+    public void setWallPaper(final String imgUri, Callback callback) {
         rctCallback = callback;
         imageurl = imgUri;
         Thread thread = new Thread(new Runnable() {
@@ -60,17 +57,26 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
                     WallpaperManager myWallpaperManager
                             = WallpaperManager.getInstance(context);
                     try {
-                        URL url = new URL(imageurl);
-                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                        connection.setDoInput(true);
-                        connection.connect();
-                        InputStream input = connection.getInputStream();
-                        Bitmap bitmap = BitmapFactory.decodeStream(input);
-                        if(bitmap!=null){
-                            myWallpaperManager.setBitmap(bitmap);
-                            message = "success";
+                        if(imageurl.startsWith("http://") || imageurl.startsWith("https://")) {
+                            URL url = new URL(imageurl);
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                            connection.setDoInput(true);
+                            connection.connect();
+                            InputStream input = connection.getInputStream();
+                            Bitmap bitmap = BitmapFactory.decodeStream(input);
+                            if (bitmap != null) {
+                                myWallpaperManager.setBitmap(bitmap);
+                                message = "success";
+                            }
+                            rctCallback.invoke(message);
+                        } else if(imageurl.startsWith("file://")) {
+                            Bitmap bitmap = BitmapFactory.decodeFile(imageurl);
+                            if (bitmap != null) {
+                                myWallpaperManager.setBitmap(bitmap);
+                                message = "success";
+                            }
+                            rctCallback.invoke(message);
                         }
-                        rctCallback.invoke(message);
                     } catch (Exception e) {
                         message = e.getMessage();
                         rctCallback.invoke(message);
