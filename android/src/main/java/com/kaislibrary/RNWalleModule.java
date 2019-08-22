@@ -6,6 +6,7 @@ import android.app.WallpaperManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.Toast;
 
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
@@ -26,6 +28,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+
+import javax.annotation.Nullable;
 
 public class RNWalleModule extends ReactContextBaseJavaModule {
 
@@ -46,7 +50,7 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
         return "RNWalle";
     }
     @ReactMethod
-    public void setWallPaper(final String imgUri, Callback callback) {
+    public void setWallPaper(final String imgUri, @Nullable final String dest, Callback callback) {
         rctCallback = callback;
         imageurl = imgUri;
         Thread thread = new Thread(new Runnable() {
@@ -70,9 +74,14 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
                             }
                             rctCallback.invoke(message);
                         } else if(imageurl.startsWith("file://")) {
-                            Bitmap bitmap = BitmapFactory.decodeFile(imageurl);
+                            Bitmap bitmap = BitmapFactory.decodeFile(imageurl.replace("file://",""));
                             if (bitmap != null) {
-                                myWallpaperManager.setBitmap(bitmap);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    myWallpaperManager.setBitmap(bitmap, null, false, getWallpaperDestination(dest));
+                                }
+                                else{
+                                    myWallpaperManager.setBitmap(bitmap);
+                                }
                                 message = "success";
                             }
                             rctCallback.invoke(message);
@@ -91,4 +100,22 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
 
     }
 
+    private int getWallpaperDestination(String dest){
+        switch (dest) {
+            case "both":
+                return 0;
+            case "lock":
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    return WallpaperManager.FLAG_LOCK;
+                }
+                return 0;
+            case "system":
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    return WallpaperManager.FLAG_SYSTEM;
+                }
+                return 0;
+            default:
+                return 0;
+        }
+    }
 }
