@@ -10,7 +10,7 @@
   "main": "index.js",
   "name": "react-native-walle",
   "peerDependencies": {
-    "react-native": "^0.41.2"
+    "react-native": "^0.60.5"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
