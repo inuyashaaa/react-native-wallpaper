@@ -58,8 +58,7 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
             public void run() {
                 message = "failed";
                 try  {
-                    WallpaperManager myWallpaperManager
-                            = WallpaperManager.getInstance(context);
+                    WallpaperManager myWallpaperManager = WallpaperManager.getInstance(context);
                     try {
                         if(imageurl.startsWith("http://") || imageurl.startsWith("https://")) {
                             URL url = new URL(imageurl);
@@ -69,7 +68,12 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
                             InputStream input = connection.getInputStream();
                             Bitmap bitmap = BitmapFactory.decodeStream(input);
                             if (bitmap != null) {
-                                myWallpaperManager.setBitmap(bitmap);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    myWallpaperManager.setBitmap(bitmap, null, false, getWallpaperDestination(dest));
+                                }
+                                else{
+                                    myWallpaperManager.setBitmap(bitmap);
+                                }
                                 message = "success";
                             }
                             rctCallback.invoke(message);
