@@ -1,6 +1,4 @@
-
 package com.kaislibrary;
-
 
 import android.app.WallpaperManager;
 import android.content.Context;
@@ -12,7 +10,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-
 
 import java.io.File;
 import java.util.HashMap;
@@ -49,6 +46,7 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
     public String getName() {
         return "RNWalle";
     }
+
     @ReactMethod
     public void setWallPaper(final String imgUri, @Nullable final String dest, Callback callback) {
         rctCallback = callback;
@@ -59,6 +57,7 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
                 message = "failed";
                 try  {
                     WallpaperManager myWallpaperManager = WallpaperManager.getInstance(context);
+
                     try {
                         if(imageurl.startsWith("http://") || imageurl.startsWith("https://")) {
                             URL url = new URL(imageurl);
@@ -69,7 +68,13 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
                             Bitmap bitmap = BitmapFactory.decodeStream(input);
                             if (bitmap != null) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    myWallpaperManager.setBitmap(bitmap, null, false, getWallpaperDestination(dest));
+                                    if (getWallpaperDestination(dest) == 2) {
+                                        myWallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK);
+                                        myWallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
+                                    }
+                                    else {
+                                        myWallpaperManager.setBitmap(bitmap, null, true, getWallpaperDestination(dest));
+                                    }
                                 }
                                 else{
                                     myWallpaperManager.setBitmap(bitmap);
@@ -81,7 +86,13 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
                             Bitmap bitmap = BitmapFactory.decodeFile(imageurl.replace("file://",""));
                             if (bitmap != null) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    myWallpaperManager.setBitmap(bitmap, null, false, getWallpaperDestination(dest));
+                                    if (getWallpaperDestination(dest) == 2) {
+                                        myWallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK);
+                                        myWallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
+                                    }
+                                    else {
+                                        myWallpaperManager.setBitmap(bitmap, null, true, getWallpaperDestination(dest));
+                                    }
                                 }
                                 else{
                                     myWallpaperManager.setBitmap(bitmap);
@@ -101,13 +112,12 @@ public class RNWalleModule extends ReactContextBaseJavaModule {
             }
         });
         thread.start();
-
     }
 
     private int getWallpaperDestination(String dest){
         switch (dest) {
             case "both":
-                return 0;
+                return 2;
             case "lock":
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     return WallpaperManager.FLAG_LOCK;

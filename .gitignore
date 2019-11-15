@@ -43,4 +43,7 @@ local.properties
 buck-out/
 \.buckd/
 *.keystore
-      
+android/.settings
+android/.classpath
+android/.project
+
